@@ -1,0 +1,4 @@
+blog.db.url=jdbc:postgresql://localhost:5432/blog
+blog.db.username=blog
+blog.db.password=change-me
+blog.db.driver=org.postgresql.Driver
