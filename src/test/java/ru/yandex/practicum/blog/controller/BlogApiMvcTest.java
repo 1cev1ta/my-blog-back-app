@@ -55,6 +55,15 @@ class BlogApiMvcTest {
     void supportsFullPostLifecycle() throws Exception {
         long id = createPost("Original title", "Original text", List.of("java", "spring"));
 
+        mockMvc.perform(get("/api/posts/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.title").value("Original title"))
+                .andExpect(jsonPath("$.text").value("Original text"))
+                .andExpect(jsonPath("$.tags.length()").value(2))
+                .andExpect(jsonPath("$.likesCount").value(0))
+                .andExpect(jsonPath("$.commentsCount").value(0));
+
         mockMvc.perform(post("/api/posts/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value((int) id))
@@ -240,6 +249,42 @@ class BlogApiMvcTest {
 
         mockMvc.perform(get("/api/posts/{postId}/comments/{commentId}", postId, commentId))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void rejectsCommentUpdateWithMismatchedPostIdWithoutChangingText() throws Exception {
+        long postId = createPost("Post", "Text", List.of());
+        MvcResult created = mockMvc.perform(post("/api/posts/{postId}/comments", postId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "text", "Original comment",
+                                "postId", postId
+                        ))))
+                .andExpect(status().isCreated())
+                .andReturn();
+        long commentId = objectMapper.readTree(created.getResponse().getContentAsByteArray())
+                .get("id").asLong();
+
+        mockMvc.perform(put("/api/posts/{postId}/comments/{commentId}", postId + 1, commentId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "id", commentId,
+                                "text", "Changed comment",
+                                "postId", postId
+                        ))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
+
+        mockMvc.perform(get("/api/posts/{postId}/comments/{commentId}", postId, commentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.text").value("Original comment"));
+    }
+
+    @Test
+    void rejectsUndefinedPostIdInCommentsRequest() throws Exception {
+        mockMvc.perform(get("/api/posts/undefined/comments"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test

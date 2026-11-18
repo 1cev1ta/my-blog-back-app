@@ -70,6 +70,11 @@ public class PostController {
         return toResponse(postService.getPost(id));
     }
 
+    @GetMapping("/{id}")
+    public PostResponse getPostByGet(@PathVariable long id) {
+        return toResponse(postService.getPost(id));
+    }
+
     @PutMapping("/{id}")
     public PostResponse updatePost(@PathVariable long id,
                                    @RequestBody UpdatePostRequest request) {
