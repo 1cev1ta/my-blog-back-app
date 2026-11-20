@@ -24,4 +24,5 @@ server:
     encoding:
       charset: UTF-8
       enabled: true
-      force: true
+      force-request: true
+      force-response: false
