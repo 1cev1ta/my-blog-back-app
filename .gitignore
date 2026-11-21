@@ -1,9 +1,9 @@
 .gradle/
 build/
+target/
 out/
 *.class
 *.jar
-!gradle/wrapper/gradle-wrapper.jar
 
 .idea/
 *.iml
@@ -16,7 +16,8 @@ out/
 .factorypath
 
 application.properties
-!src/test/resources/application.properties
+application-local.yml
+application-local.yaml
 *.local.properties
 .env
 
